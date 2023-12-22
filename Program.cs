@@ -1,25 +1,29 @@
-using System;
-using System.Runtime.InteropServices.JavaScript;
+// bootstraps shit
 
+using System.Runtime.InteropServices.JavaScript;
 using ScreepsDotNet.API.World;
 
 namespace ScreepsDotNet {
-    public static partial class Program {
-        private static IGame? game;
+    public partial class Program {
+        static IGame? _game;
+        static ScreepsMachine? _screepsMachine;
 
         public static void Main() {}
 
         [JSExport]
         internal static void Init() {
-            game = new Native.World.NativeGame();
+            _game = new Native.World.NativeGame();
+            _screepsMachine = new ScreepsMachine(_game);
         }
 
         [JSExport]
         internal static void Loop() {
-            if (game == null) { return; }
+            if (_game == null || _screepsMachine == null) {
+                return;
+            }
 
-            game.Tick();
-            Console.WriteLine($"Hello world from C#, the current tick is {game.Time}");
+            _game.Tick();
+            _screepsMachine.Loop();
         }
     }
 }
