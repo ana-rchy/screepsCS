@@ -29,4 +29,8 @@ internal class Harvester : IRole {
 			creep.MoveTo(source.RoomPosition);
 		}
 	}
+
+	static internal BodyType<BodyPartType> GetBody(int energyBudget) {
+
+	}
 }

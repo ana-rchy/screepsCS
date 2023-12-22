@@ -11,11 +11,10 @@
         <TrimMode>full</TrimMode>
         <TrimmerRemoveSymbols>true</TrimmerRemoveSymbols>
         <InvariantGlobalization>true</InvariantGlobalization>
-    </PropertyGroup>
-
-    <PropertyGroup Condition="'$(Configuration)' == 'Release'">
         <RunAOTCompilation>false</RunAOTCompilation>
     </PropertyGroup>
+
+    
 
     <ItemGroup>
       <PackageReference Include="ScreepsDotNet.API" Version="1.1.0" />
