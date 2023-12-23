@@ -17,7 +17,7 @@
     
 
     <ItemGroup>
-      <PackageReference Include="ScreepsDotNet.API" Version="1.1.0" />
+      <PackageReference Include="ScreepsDotNet.API" Version="1.1.1" />
       <PackageReference Include="ScreepsDotNet.Bundler" Version="1.1.1" />
     </ItemGroup>
 </Project>

@@ -2,7 +2,6 @@ using ScreepsDotNet.API;
 using ScreepsDotNet.API.World;
 
 internal interface IRole {
-	static IGame? _game;
-
-	internal static readonly BodyType<BodyPartType> BodyType;
+	abstract static void Run(ICreep crep);
+	abstract static BodyType<BodyPartType> GetBody(int energyBudget);
 }
