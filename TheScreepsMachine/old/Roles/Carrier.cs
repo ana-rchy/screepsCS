@@ -4,7 +4,7 @@ using System.Linq;
 using ScreepsDotNet.API;
 using ScreepsDotNet.API.World;
 
-internal class Carrier : IRole {
+internal class Carrier_old : IRole_old {
 	internal static IGame? Game {get; set;}
 
 	public static void Run(ICreep creep) {

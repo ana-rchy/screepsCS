@@ -6,24 +6,23 @@ using ScreepsDotNet.API.World;
 namespace ScreepsDotNet {
     public partial class Program {
         static IGame? _game;
-        static ScreepsMachine? _screepsMachine;
 
         public static void Main() {}
 
         [JSExport]
         internal static void Init() {
             _game = new Native.World.NativeGame();
-            _screepsMachine = new ScreepsMachine(_game);
+            ScreepsMachine.Init(_game);
         }
 
         [JSExport]
         internal static void Loop() {
-            if (_game == null || _screepsMachine == null) {
+            if (_game == null) {
                 return;
             }
 
             _game.Tick();
-            _screepsMachine.Loop();
+            ScreepsMachine.Loop();
         }
     }
 }

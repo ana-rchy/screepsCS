@@ -33,11 +33,11 @@ internal class SpawnHandler {
 
 		if (_creepCounts["harvester"] < sourcesCount && _creepCounts["harvester"] <= _creepCounts["carrier"]) {
 			role = "harvester";
-			body = Harvester.GetBody(energyBudget);
+			body = Harvester_old.GetBody(energyBudget);
 			Console.WriteLine("spawning harvester");
 		} else if (_creepCounts["carrier"] < _creepCounts["harvester"]) {
 			role = "carrier";
-			body = Carrier.GetBody(energyBudget);
+			body = Carrier_old.GetBody(energyBudget);
 			Console.WriteLine("spawning carrier");
 		} else {
 			return;
