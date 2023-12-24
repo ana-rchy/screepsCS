@@ -4,16 +4,12 @@ using ScreepsDotNet.API;
 using ScreepsDotNet.API.World;
 
 internal class Harvester : IRole {
+	internal static IGame? Game {get; set;}
+	
 	public static void Run(ICreep creep) {
-		var sources = creep.Room.Find<ISource>();
-		if (!sources.Any()) {
-			return;
-		}
-
-		var source = sources.MinBy(source => source.LocalPosition.LinearDistanceTo(creep.LocalPosition));
-		if (source == null) {
-			return;
-		}
+		creep.Memory.TryGetString("target", out var target);
+		var source = Game.GetObjectById<ISource>(target);
+		if (source == null) return;
 
 		if (creep.Harvest(source) == CreepHarvestResult.NotInRange) {
 			creep.MoveTo(source.RoomPosition);

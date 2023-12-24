@@ -8,12 +8,11 @@ internal class Carrier : IRole {
 	internal static IGame? Game {get; set;}
 
 	public static void Run(ICreep creep) {
-		var state = ScreepsMachine.CreepsMemory[creep.Name]["state"];
+		creep.Memory.TryGetString("state", out var state);
 
 		switch (state) {
 			case "collecting":
 				if (creep.Store.GetFreeCapacity() == 0) {
-					ScreepsMachine.CreepsMemory[creep.Name]["state"] = "transferring";
 					creep.Memory.SetValue("state", "transferring");
 				}
 
@@ -24,24 +23,15 @@ internal class Carrier : IRole {
 				foreach (var dropped in creep.Room.Find<IResource>().Where(d => d.ResourceType == ResourceType.Energy)) {
 					energySources.Add(dropped);
 				}
+				if (!energySources.Any()) return;
 
 				var target = energySources.MaxBy(x => GetEnergy(x));
-
-				if (ruin != null && ruin.Store.GetUsedCapacity(ResourceType.Energy) >= dropped.Amount) {
-					if (creep.Withdraw(ruin, ResourceType.Energy) == CreepWithdrawResult.NotInRange) {
-						creep.MoveTo(ruin.LocalPosition);
-					}
-				} else {
-					if (creep.Pickup(dropped) == CreepPickupResult.NotInRange) {
-						creep.MoveTo(dropped.LocalPosition);
-					}
-				}
+				CommonWithdraw(creep, target);
 
 				break;
 
 			case "transferring":
 				if (creep.Store.GetUsedCapacity() == 0) {
-					ScreepsMachine.CreepsMemory[creep.Name]["state"] = "collecting";
 					creep.Memory.SetValue("state", "collecting");
 				}
 
@@ -87,8 +77,18 @@ internal class Carrier : IRole {
 		}
 	}
 
-	static void CommonWithdraw(ICreep creep) {
-
+	static void CommonWithdraw(ICreep creep, IRoomObject withdrawTarget) {
+		if (withdrawTarget is IResource) {
+			var target = (IResource) withdrawTarget;
+			if (creep.Pickup(target) == CreepPickupResult.NotInRange) {
+				creep.MoveTo(target.LocalPosition);
+			}
+		} else if (withdrawTarget is IRuin) {
+			var target = (IRuin) withdrawTarget;
+			if (creep.Withdraw(target, ResourceType.Energy) == CreepWithdrawResult.NotInRange) {
+				creep.MoveTo(target.LocalPosition);
+			}
+		}
 	}
 
 	#endregion

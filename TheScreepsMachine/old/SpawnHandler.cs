@@ -21,9 +21,10 @@ internal class SpawnHandler {
 	}
 
 	internal void Run() {
-		if (GetCurrentEnergy() != GetTotalEnergy()) {
-			return;
-		}
+		Console.WriteLine($"harvester: {_creepCounts["harvester"]}");
+		Console.WriteLine($"carrier: {_creepCounts["carrier"]}");
+		
+		if (GetCurrentEnergy() != GetTotalEnergy()) return;
 
 		var sourcesCount = Spawn.Room.Find<ISource>().Count();
 		var energyBudget = GetTotalEnergy();
@@ -44,15 +45,15 @@ internal class SpawnHandler {
 
 		var name = role + _game.Time;
 
-		ScreepsMachine.CreepsMemory.Add(name, new());
-		ScreepsMachine.CreepsMemory[name].Add("role", role);
 		_game.Memory.GetOrCreateObject("creeps").GetOrCreateObject(name).SetValue("role", role);
 		_creepCounts[role]++;
 
 		Spawn.SpawnCreep(body, name);
 
-		if (role == "carrier") { // TODO: put into the first if blocks
-			ScreepsMachine.CreepsMemory[name].Add("state", "collecting");
+		if (role == "harvester") {
+			var target = GetHarvesterTarget();
+			_game.Memory.GetOrCreateObject("creeps").GetOrCreateObject(name).SetValue("target", target.Id);
+		} else if (role == "carrier") {
 			_game.Memory.GetOrCreateObject("creeps").GetOrCreateObject(name).SetValue("state", "collecting");
 		}
 
@@ -63,13 +64,18 @@ internal class SpawnHandler {
 	#region | funcs
 
 	internal void CreepDied(string role) {
+		if (!_creepCounts.TryGetValue(role, out _)) return;
+		
 		_creepCounts[role]--;
 		Console.WriteLine($"{role} count: {_creepCounts[role]}");
 	}
 	
 	void CountCreeps() {
-		foreach (var creep in ScreepsMachine.CreepsMemory) {
-			var role = (string) creep.Value["role"];
+		_game.Memory.TryGetObject("creeps", out var creeps);
+
+		foreach (var creepName in creeps.Keys) {
+			creeps.TryGetObject(creepName, out var creep);
+			creep.TryGetString("role", out var role);
 			_creepCounts[role]++;
 			Console.WriteLine($"{role} count: {_creepCounts[role]}");
 		}
@@ -88,6 +94,28 @@ internal class SpawnHandler {
 	int GetTotalEnergy() {
 		var extensionsCount = Spawn.Room.Find<IStructureExtension>().Count();
 		return 300 + extensionsCount * 50;
+	}
+
+	ISource GetHarvesterTarget() {
+		var allSources = Spawn.Room.Find<ISource>();
+		List<string> allSourceIDs = new();
+		foreach (var source in allSources) {
+			allSourceIDs.Add(source.Id.ToString());
+		}
+		
+		List<string> occupiedSourceIDs = new();
+		var creeps = _game.Memory.GetOrCreateObject("creeps");
+		foreach (var creepName in creeps.Keys) {
+			creeps.TryGetObject(creepName, out var creep);
+			creep.TryGetString("target", out var targetID);
+			occupiedSourceIDs.Add(targetID);
+		}
+
+		foreach (var id in occupiedSourceIDs) {
+			allSourceIDs.Remove(id);
+		}
+
+		return _game.GetObjectById<ISource>(allSourceIDs[0]);
 	}
 
 	#endregion

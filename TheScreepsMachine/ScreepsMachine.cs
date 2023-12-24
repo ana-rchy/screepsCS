@@ -1,21 +1,19 @@
 // the real entrypoint
 
 using System;
-using System.Collections.Generic;
 using ScreepsDotNet.API.World;
 
 internal class ScreepsMachine {
 	static IGame? _game;
 	SpawnHandler _spawnHandler;
 
-	static internal Dictionary<string, Dictionary<string, object>> CreepsMemory {get; private set;} = new();
-
 	public ScreepsMachine(IGame game) {
 		_game = game;
-		CleanupMemory();
+		InitCleanup();
 		RefreshCreepsMemory();
 
 		_spawnHandler = new SpawnHandler(game);
+		Harvester.Game = game;
 		Carrier.Game = game;
 	}
 
@@ -39,41 +37,44 @@ internal class ScreepsMachine {
 	// ------------------------------------------------------------------------------------------------------------------- //
 	#region | funcs
 
-	void RefreshCreepsMemory() {
-		CreepsMemory.Clear();
-
-		if (!_game.Memory.TryGetObject("creeps", out var creeps)) {
-			return;
-		}
+	void InitCleanup() {
+		if (!_game.Memory.TryGetObject("creeps", out var creeps)) return;
 
 		foreach (var creepName in creeps.Keys) {
-			creeps.TryGetObject(creepName, out var creep);
-			CreepsMemory.Add(creepName, new());
-
-			Console.Write($"{creepName}:\t");
-
-			foreach (var element in creep.Keys) {
-				creep.TryGetString(element, out var value);
-				CreepsMemory[creepName].Add(element, value);
-
-				Console.WriteLine($"{element}:{value}");
+			if (!_game.Creeps.ContainsKey(creepName)) {
+				creeps.ClearValue(creepName);
+				Console.WriteLine($"assassinated {creepName}");
 			}
 		}
 	}
 
 	void CleanupMemory() {
-		if (!_game.Memory.TryGetObject("creeps", out var creeps)) {
-			return;
-		}
+		if (!_game.Memory.TryGetObject("creeps", out var creeps)) return;
 
 		foreach (var creepName in creeps.Keys) {
 			if (!_game.Creeps.ContainsKey(creepName)) {
-				CreepsMemory.Remove(creepName);
+				creeps.TryGetObject(creepName, out var creep);
+				creep.TryGetString("role", out var role);
+				_spawnHandler.CreepDied(role);
+
 				creeps.ClearValue(creepName);
-
-				_spawnHandler.CreepDied((string) CreepsMemory[creepName]["role"]);
-
 				Console.WriteLine($"assassinated {creepName}");
+			}
+		}
+	}
+
+	void RefreshCreepsMemory() {
+		if (!_game.Memory.TryGetObject("creeps", out var creeps)) return;
+
+		foreach (var creepName in creeps.Keys) {
+			creeps.TryGetObject(creepName, out var creep);
+
+			Console.Write($"{creepName}:\n");
+
+			foreach (var element in creep.Keys) {
+				creep.TryGetString(element, out var value);
+
+				Console.WriteLine($"{element}:{value}\n");
 			}
 		}
 	}
