@@ -13,22 +13,27 @@ internal sealed class Harvester : Role {
 
     internal override void Run() {
         var success = Game.Creeps.TryGetValue(_name, out _creep);
-		if (!success) return;
+		if (!success) return; // creep may not be in game memory yet
 
         success = _creep.Memory.TryGetString("target", out var target);
 		if (!success) {
-			Console.WriteLine("no target assigned");
+			Console.WriteLine("no harvester target assigned");
 			return;
 		}
 
 		var source = Game.GetObjectById<ISource>(target);
-		if (source == null) return;
+		if (source == null) {
+			Console.WriteLine("invalid harvester target");
+			return;
+		}
 
-		if (_creep.Harvest(source) == CreepHarvestResult.NotInRange) {
+		var result = _creep.Harvest(source);
+		if (result == CreepHarvestResult.NotInRange) {
 			_creep.MoveTo(source.RoomPosition);
+		} else if (result != CreepHarvestResult.Ok) {
+			Console.WriteLine($"{_name}: {result}");
 		}
     }
-
 
 
     protected override BodyType<BodyPartType> GetBody(int energyBudget) {
@@ -40,12 +45,13 @@ internal sealed class Harvester : Role {
 		energyBudget -= 300;
 
 		while (energyBudget - 100 >= 0) {
-			body[0].Item2++;
+			body[1].Item2++;
 			energyBudget -= 100;
 		}
 
 		while (energyBudget - 10 >= 0) {
-			body[1].Item2++;
+			body[2].Item2++;
+			energyBudget -= 10;
 		}
 
 		return new(body);
@@ -53,6 +59,7 @@ internal sealed class Harvester : Role {
 
     private static ISource GetHarvesterTarget(IStructureSpawn spawn) {
 		var allSources = spawn.Room.Find<ISource>();
+		
 		List<string> allSourceIDs = new();
 		foreach (var source in allSources) {
 			allSourceIDs.Add(source.Id.ToString());
@@ -62,8 +69,17 @@ internal sealed class Harvester : Role {
 		var creeps = Game.Memory.GetOrCreateObject("creeps");
 		foreach (var creepName in creeps.Keys) {
 			creeps.TryGetObject(creepName, out var creep);
-			creep.TryGetString("target", out var targetID);
-			occupiedSourceIDs.Add(targetID);
+			if (creep == null) {
+				Console.WriteLine($"{creepName} not in memory. thats fucked up");
+				continue;
+			}
+
+			var success = creep.TryGetString("target", out var targetID);
+			if (success) {
+				occupiedSourceIDs.Add(targetID);
+			} else {
+				Console.WriteLine($"{creepName} had no target property");
+			}
 		}
 
 		foreach (var id in occupiedSourceIDs) {

@@ -11,11 +11,11 @@ internal static class ScreepsMachine {
 
 	internal static void Init(IGame game) {
 		_game = game;
+		SpawnManager.Init(game);
+		Role.Game = game;
+
 		CleanupMemory();
 		RefreshCreepsMemory();
-
-		SpawnManager.Init(game);
-        Role.Game = game;
 	}
 
 	internal static void Loop() {
@@ -35,7 +35,7 @@ internal static class ScreepsMachine {
 	}
 
 	private static void CleanupMemory() {
-		if (!_game.Memory.TryGetObject("creeps", out var creeps)) return;
+		var creeps = _game.Memory.GetOrCreateObject("creeps");
 
 		foreach (var creepName in creeps.Keys) {
 			if (!_game.Creeps.ContainsKey(creepName)) {
@@ -47,13 +47,17 @@ internal static class ScreepsMachine {
 	}
 
 	private static void RefreshCreepsMemory() {
-		if (!_game.Memory.TryGetObject("creeps", out var creeps)) return;
+		var creeps = _game.Memory.GetOrCreateObject("creeps");
 
 		foreach (var creepName in creeps.Keys) {
-			Console.Write($"{creepName}:\n");
-
-			string role = "";
 			creeps.TryGetObject(creepName, out var creep);
+			if (creep == null) {
+				Console.WriteLine($"{creepName} not in memory. thats fucked up");
+				continue;
+			}
+
+			Console.WriteLine($"-- {creepName} --");
+			string role = "";
 
 			foreach (var element in creep.Keys) {
 				creep.TryGetString(element, out var value);
@@ -61,7 +65,7 @@ internal static class ScreepsMachine {
 					role = value;
 				}
 
-				Console.WriteLine($"{element}:{value}\n");
+				Console.WriteLine($"{element}:{value}");
 			}
 
 			switch (role) {
@@ -71,7 +75,15 @@ internal static class ScreepsMachine {
 				case "carrier":
 					Creeps.Add(new Carrier(creepName));
 					break;
+				case "builder":
+					Creeps.Add(new Builder(creepName));
+					break;
+				case "upgrader":
+					Creeps.Add(new Upgrader(creepName));
+					break;
 			}
+
+			Console.WriteLine("------------------------");
 		}
 	}
 

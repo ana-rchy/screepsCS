@@ -27,12 +27,16 @@ internal class Role {
     // for new creeps
     internal Role(IStructureSpawn spawn) {
         _name = $"{GetType().Name.ToLower()}{Game.Time}";
-        var energyBudget = 300 + spawn.Room.Find<IStructureExtension>().Count() * 50;
+        var energyBudget = SpawnManager.GetTotalEnergy();
 
-        spawn.SpawnCreep(GetBody(energyBudget), _name);
-        _game.Memory.GetOrCreateObject("creeps").GetOrCreateObject(_name)
-            .SetValue("role", GetType().Name.ToLower());
-        ScreepsMachine.RegisterCreep(this);
+        var result = spawn.SpawnCreep(GetBody(energyBudget), _name);
+        if (result == SpawnCreepResult.Ok) {
+            _game.Memory.GetOrCreateObject("creeps").GetOrCreateObject(_name)
+                .SetValue("role", GetType().Name.ToLower());
+            ScreepsMachine.RegisterCreep(this);
+        } else {
+            Console.WriteLine(result);
+        }
     }
 
     internal virtual void Run() {}

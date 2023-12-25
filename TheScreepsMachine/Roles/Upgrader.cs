@@ -4,10 +4,10 @@ using System.Linq;
 using ScreepsDotNet.API;
 using ScreepsDotNet.API.World;
 
-internal sealed class Carrier : Role {
-    internal Carrier(string name) : base(name) {}
-    internal Carrier(IStructureSpawn spawn) : base(spawn) {
-		Game.Memory.GetOrCreateObject("creeps").GetOrCreateObject(_name)
+internal sealed class Upgrader : Role {
+    internal Upgrader(string name) : base(name) {}
+    internal Upgrader(IStructureSpawn spawn) : base(spawn) {
+        Game.Memory.GetOrCreateObject("creeps").GetOrCreateObject(_name)
 			.SetValue("state", "collecting");
     }
 
@@ -21,12 +21,12 @@ internal sealed class Carrier : Role {
 			state = "collecting";
 		}
 
-		switch (state) {
-			case "collecting":
-				success = _creep.Memory.TryGetString("collectionTarget", out _);
+        switch (state) {
+            case "collecting":
+                success = _creep.Memory.TryGetString("collectionTarget", out _);
 				if (_creep.Store.GetFreeCapacity(ResourceType.Energy) == 0 ||
 					(!success && _creep.Store.GetUsedCapacity(ResourceType.Energy) > 50)) {
-					_creep.Memory.SetValue("state", "transferring");
+					_creep.Memory.SetValue("state", "upgrading");
 					return;
 				}
 
@@ -45,53 +45,48 @@ internal sealed class Carrier : Role {
 
 				break;
 
-			case "transferring":
-				if (_creep.Store.GetUsedCapacity(ResourceType.Energy) == 0) {
+            case "upgrading":
+				if (_creep.Store.GetUsedCapacity() == 0) {
 					_creep.Memory.SetValue("state", "collecting");
-					return;
 				}
 
-                IEnumerable<IWithStore> containers = new List<IWithStore>();
-                containers = containers
-                    .Concat(_creep.Room.Find<IStructureSpawn>())
-                    .Concat(_creep.Room.Find<IStructureExtension>());
-                var transferTarget = (IStructure?) containers
-					.Where(x => x.Store.GetFreeCapacity(ResourceType.Energy) != 0)
-                    .MinBy(x => x.Store.GetFreeCapacity(ResourceType.Energy));
-				
-				if (transferTarget == null) {
-					_creep.Memory.SetValue("state", "collecting");
-					return;
-				}
-
-				var result = _creep.Transfer(transferTarget, ResourceType.Energy);
-				if (result == CreepTransferResult.NotInRange) {
-					_creep.MoveTo(transferTarget.LocalPosition);
-				} else if (result != CreepTransferResult.Ok) {
+                var controller = _creep.Room.Controller;
+				var result = _creep.UpgradeController(controller);
+                if (result == CreepUpgradeControllerResult.NotInRange) {
+                    _creep.MoveTo(controller.LocalPosition);
+                } else if (result != CreepUpgradeControllerResult.Ok) {
 					Console.WriteLine($"{_name}: {result}");
 				}
 
-				break;
-		}
+                break;
+        }
     }
 
 
     protected override BodyType<BodyPartType> GetBody(int energyBudget) {
 		(BodyPartType, int)[] body = new[] {
-			(BodyPartType.Carry, 3),
-			(BodyPartType.Move, 3)
+            (BodyPartType.Work, 2),
+			(BodyPartType.Carry, 1),
+			(BodyPartType.Move, 1)
 		};
 		energyBudget -= 300;
 
-		while (energyBudget - 50 >= 0) {
-			body[0].Item2++;
-			energyBudget -= 50;
-
-			if (energyBudget - 50 >= 0) {
-				body[1].Item2++;
-				energyBudget -= 50;
-			}
-		}
+		while (true) {
+            if (energyBudget - 50 >= 0) {
+                body[1].Item2++;
+                energyBudget -= 50;
+            } else {
+                break;
+            }
+            if (energyBudget - 50 >= 0) {
+                body[2].Item2++;
+                energyBudget -= 50;
+            }
+            if (energyBudget - 100 >= 0) {
+                body[0].Item2++;
+                energyBudget -= 100;
+            }
+        }
 
 		return new(body);
 	}
@@ -118,7 +113,7 @@ internal sealed class Carrier : Role {
 		return ((IWithId?) withdrawTarget) != null ? ((IWithId?) withdrawTarget).Id : "null";
 	}
 
-    private static int GetEnergy(IRoomObject energySource) {
+    static int GetEnergy(IRoomObject energySource) {
 		if (energySource is IResource source) {
 			return source.Amount;
 		} else if (energySource is IRuin ruin) {
@@ -129,7 +124,7 @@ internal sealed class Carrier : Role {
 		}
 	}
 
-	private static void CommonWithdraw(ICreep creep, IRoomObject withdrawTarget) {
+	static void CommonWithdraw(ICreep creep, IRoomObject withdrawTarget) {
 		if (withdrawTarget is IResource target) {
 			if (creep.Pickup(target) == CreepPickupResult.NotInRange) {
 				creep.MoveTo(target.LocalPosition);
