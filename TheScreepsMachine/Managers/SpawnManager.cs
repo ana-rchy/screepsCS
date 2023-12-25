@@ -12,14 +12,16 @@ internal static class SpawnManager {
 		{"harvester", 2},
 		{"carrier", 2},
 		{"builder", 4},
-		{"upgrader", 4}
+		{"upgrader", 4},
+		{"melee_defender", 2}
 	};
 
 	private static readonly Dictionary<string, int> _creepCounts = new() {
 		{"harvester", 0},
 		{"carrier", 0},
 		{"builder", 0},
-		{"upgrader", 0}
+		{"upgrader", 0},
+		{"melee_defender", 0}
 	};
 
     internal static void Init(IGame game) {
@@ -33,12 +35,15 @@ internal static class SpawnManager {
 		Console.WriteLine($"carrier: {_creepCounts["carrier"]}");
 		Console.WriteLine($"builder: {_creepCounts["builder"]}");
 		Console.WriteLine($"upgrader: {_creepCounts["upgrader"]}");
+		Console.WriteLine($"melee defender: {_creepCounts["melee_defender"]}");
 		
 		if (GetCurrentEnergy() != GetTotalEnergy()) return;
 
-		var spawnTarget = _creepCounts
-			.Where(x => x.Value < _maxCreepCounts[x.Key])
-			.MinBy(x => x.Value);
+		var spawnTargets = _creepCounts
+			.Where(x => x.Value < _maxCreepCounts[x.Key]);
+		if (!spawnTargets.Any()) return;
+		var spawnTarget = spawnTargets.MinBy(x => x.Value);
+			
 		
 		switch (spawnTarget.Key) {
 			case "harvester":
@@ -61,29 +66,12 @@ internal static class SpawnManager {
 				_creepCounts[spawnTarget.Key]++;
 				Console.WriteLine("spawning upgrader");
 				break;
+			case "melee_defender":
+				_ = new Melee_Defender(_spawn);
+				_creepCounts[spawnTarget.Key]++;
+				Console.WriteLine("spawning melee defender");
+				break;
 		}
-
-        //var sourcesCount = _spawn.Room.Find<ISource>().Count();
-
-        // if (_creepCounts["carrier"] <= _creepCounts["harvester"]) {
-        //     _ = new Carrier(_spawn);
-		// 	_creepCounts["carrier"]++;
-        //     Console.WriteLine("spawning carrier");
-        // } else if (_creepCounts["harvester"] < sourcesCount) {
-        //     _ = new Harvester(_spawn);
-		// 	_creepCounts["harvester"]++;
-        //     Console.WriteLine("spawning harvester");
-		// } else if (_creepCounts["builder"] < _creepCounts["upgrader"]) {
-		// 	_ = new Builder(_spawn);
-		// 	_creepCounts["builder"]++;
-		// 	Console.WriteLine("spawning builder");
-		// } else if (_creepCounts["upgrader"] < sourcesCount * 2) {
-		// 	_ = new Upgrader(_spawn);
-		// 	_creepCounts["upgrader"]++;
-		// 	Console.WriteLine("spawning upgrader");
-		// } else {
-		// 	Console.WriteLine("no spawn");
-		// }
 	}
 
     // ------------------------------------------------------------------------------------------------------------------- //

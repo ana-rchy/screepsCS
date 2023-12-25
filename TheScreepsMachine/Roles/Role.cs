@@ -39,7 +39,11 @@ internal class Role {
         }
     }
 
-    internal virtual void Run() {}
+    internal virtual void Run() {
+        // creep may not be in game memory yet
+        if (!Game.Creeps.TryGetValue(_name, out _creep)) return;
+    }
+
     protected virtual BodyType<BodyPartType> GetBody(int energyBudget) {
         return new();
     }

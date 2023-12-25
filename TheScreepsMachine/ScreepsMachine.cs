@@ -81,6 +81,9 @@ internal static class ScreepsMachine {
 				case "upgrader":
 					Creeps.Add(new Upgrader(creepName));
 					break;
+				case "melee_defender":
+					Creeps.Add(new Melee_Defender(creepName));
+					break;
 			}
 
 			Console.WriteLine("------------------------");

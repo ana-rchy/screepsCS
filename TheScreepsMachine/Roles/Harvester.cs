@@ -12,10 +12,9 @@ internal sealed class Harvester : Role {
     }
 
     internal override void Run() {
-        var success = Game.Creeps.TryGetValue(_name, out _creep);
-		if (!success) return; // creep may not be in game memory yet
+        if (!Game.Creeps.TryGetValue(_name, out _creep)) return;
 
-        success = _creep.Memory.TryGetString("target", out var target);
+        var success = _creep.Memory.TryGetString("target", out var target);
 		if (!success) {
 			Console.WriteLine("no harvester target assigned");
 			return;
@@ -44,14 +43,9 @@ internal sealed class Harvester : Role {
 		};
 		energyBudget -= 300;
 
-		while (energyBudget - 100 >= 0) {
+		while (energyBudget - 100 >= 0 && body[1].Item2 <= 5) {
 			body[1].Item2++;
 			energyBudget -= 100;
-		}
-
-		while (energyBudget - 10 >= 0) {
-			body[2].Item2++;
-			energyBudget -= 10;
 		}
 
 		return new(body);

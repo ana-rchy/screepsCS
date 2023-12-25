@@ -12,6 +12,8 @@ internal sealed class Upgrader : Role {
     }
 
     internal override void Run() {
+		if (!Game.Creeps.TryGetValue(_name, out _creep)) return;
+		
         var success = Game.Creeps.TryGetValue(_name, out _creep);
 		if (!success) return;
 
@@ -93,7 +95,7 @@ internal sealed class Upgrader : Role {
 
 	private string GetCollectionTarget() {
 		List<IRoomObject> energySources = new();
-		foreach (var dropped in _creep.Room.Find<IResource>().Where(d => d.ResourceType == ResourceType.Energy)) {
+		foreach (var dropped in _creep.Room.Find<IResource>().Where(x => x.ResourceType == ResourceType.Energy)) {
 			energySources.Add(dropped);
 		}
 		foreach (var tombstone in _creep.Room.Find<ITombstone>()) {

@@ -12,10 +12,9 @@ internal sealed class Builder : Role {
     }
 
     internal override void Run() {
-        var success = Game.Creeps.TryGetValue(_name, out _creep);
-		if (!success) return;
+        if (!Game.Creeps.TryGetValue(_name, out _creep)) return;
 
-        success = _creep.Memory.TryGetString("state", out var state);
+        var success = _creep.Memory.TryGetString("state", out var state);
 		if (!success) {
 			_creep.Memory.SetValue("state", "collecting");
 			state = "collecting";
@@ -53,7 +52,7 @@ internal sealed class Builder : Role {
                 var buildSites = _creep.Room.Find<IConstructionSite>();
 				if (!buildSites.Any()) return;
 
-                var buildTarget = buildSites.MaxBy(b => b.Progress / b.ProgressTotal);
+                var buildTarget = buildSites.MaxBy(x => x.Progress / x.ProgressTotal);
 
 				var result = _creep.Build(buildTarget);
                 if (result == CreepBuildResult.NotInRange) {
@@ -97,7 +96,7 @@ internal sealed class Builder : Role {
 
 	private string GetCollectionTarget() {
 		List<IRoomObject> energySources = new();
-		foreach (var dropped in _creep.Room.Find<IResource>().Where(d => d.ResourceType == ResourceType.Energy)) {
+		foreach (var dropped in _creep.Room.Find<IResource>().Where(x => x.ResourceType == ResourceType.Energy)) {
 			energySources.Add(dropped);
 		}
 		foreach (var tombstone in _creep.Room.Find<ITombstone>()) {
