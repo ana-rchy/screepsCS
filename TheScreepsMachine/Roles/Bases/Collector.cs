@@ -13,7 +13,7 @@ internal class Collector : Role {
 
     protected string GetCollectionTarget() {
 		List<IRoomObject> energySources = new();
-		foreach (var container in Cache.Find<IStructureContainer>(Cache.Structures).Where(x => x.Store.GetUsedCapacity(ResourceType.Energy) != 0)) {
+		foreach (var container in Cache.Structures.OfType<IStructureContainer>().Where(x => x.Store.GetUsedCapacity(ResourceType.Energy) != 0)) {
 			energySources.Add(container);
 		}
 		foreach (var dropped in Cache.Resources.Where(x => x.ResourceType == ResourceType.Energy)) {

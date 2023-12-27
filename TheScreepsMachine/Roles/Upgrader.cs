@@ -50,6 +50,7 @@ internal sealed class Upgrader : Collector {
                 var controller = _creep.Room.Controller;
 				var result = _creep.UpgradeController(controller);
                 if (result == CreepUpgradeControllerResult.NotInRange) {
+					Console.WriteLine($"{controller.Room}\t{controller.LocalPosition}");
                     _creep.MoveTo(controller.LocalPosition);
                 } else if (result != CreepUpgradeControllerResult.Ok) {
 					Console.WriteLine($"{_name}: {result}");

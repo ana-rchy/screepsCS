@@ -6,20 +6,13 @@ using ScreepsDotNet.API.World;
 #pragma warning disable CS8618
 
 internal static class Cache {
-	// internal static readonly Dictionary<string, IEnumerable<IRoomObject>?> RoomObjects = new() {
-	// 	{"ISource", null},
-	// 	{"IResource", null},
-	// 	{"IStructure", null},
-	// 	{"ITombstone", null},
-	// };
-
 	private static IGame _game;
 	private static IRoom _room;
-    internal static IEnumerable<ISource> Sources;
-    internal static IEnumerable<IResource> Resources;
-	internal static IEnumerable<IStructure> Structures;
-	internal static IEnumerable<ITombstone> Tombstones;
-	internal static IEnumerable<IConstructionSite> ConstructionSites;
+    internal static IEnumerable<ISource> Sources {get; private set;} 
+    internal static IEnumerable<IResource> Resources {get; private set;} 
+	internal static IEnumerable<IStructure> Structures {get; private set;} 
+	internal static IEnumerable<ITombstone> Tombstones {get; private set;} 
+	internal static IEnumerable<IConstructionSite> ConstructionSites {get; private set;} 
 
 	private static int _tickCounter;
 
@@ -41,12 +34,4 @@ internal static class Cache {
 		}
 		_tickCounter++;
 	}
-
-	internal static IEnumerable<T> Find<T>(IEnumerable<IRoomObject> objects) where T : IRoomObject {
-		return objects.Where(x => x is T).Cast<T>();
-	}
-
-	// internal static IEnumerable<T> Find<T>() where T : IRoomObject {
-	// 	return RoomObjects.Where(x => x is T).Cast<T>();
-	// }
 }

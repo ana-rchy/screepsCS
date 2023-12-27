@@ -7,8 +7,8 @@ using ScreepsDotNet.API.World;
 #pragma warning disable CS8618
 
 internal static class SpawnManager {
+	internal static IStructureSpawn Spawn {get; private set;}
     private static IGame _game;
-	private static IStructureSpawn _spawn; // TODO: make it multi-room-able
 
 	private static readonly Dictionary<string, int> _maxCreepCounts = new() {
 		{"harvester", 2},
@@ -28,7 +28,7 @@ internal static class SpawnManager {
 
     internal static void Init(IGame game) {
         _game = game;
-        _spawn = _game.Spawns["Spawn1"];
+        Spawn = _game.Spawns["Spawn1"];
         CountCreeps();
     }
 
@@ -43,27 +43,27 @@ internal static class SpawnManager {
 		
 		switch (spawnTarget.Key) {
 			case "harvester":
-				_ = new Harvester(_spawn);
+				_ = new Harvester(Spawn);
 				Console.WriteLine("spawning harvester");
 				Console.WriteLine($"harvester: {_creepCounts["harvester"]}");
 				break;
 			case "carrier":
-				_ = new Carrier(_spawn);
+				_ = new Carrier(Spawn);
 				Console.WriteLine("spawning carrier");
 				Console.WriteLine($"carrier: {_creepCounts["carrier"]}");
 				break;
 			case "builder":
-				_ = new Builder(_spawn);
+				_ = new Builder(Spawn);
 				Console.WriteLine("spawning builder");
 				Console.WriteLine($"builder: {_creepCounts["builder"]}");
 				break;
 			case "upgrader":
-				_ = new Upgrader(_spawn);
+				_ = new Upgrader(Spawn);
 				Console.WriteLine("spawning upgrader");
 				Console.WriteLine($"upgrader: {_creepCounts["upgrader"]}");
 				break;
 			case "melee_defender":
-				_ = new Melee_Defender(_spawn);
+				_ = new Melee_Defender(Spawn);
 				Console.WriteLine("spawning melee defender");
 				Console.WriteLine($"melee defender: {_creepCounts["melee_defender"]}");
 				break;
@@ -90,9 +90,9 @@ internal static class SpawnManager {
 	}
 
 	internal static int GetCurrentEnergy() {
-		var spawnEnergy = _spawn.Store.GetUsedCapacity(ResourceType.Energy) ?? 0;
+		var spawnEnergy = Spawn.Store.GetUsedCapacity(ResourceType.Energy) ?? 0;
 		int extensionsEnergy = 0;
-		foreach (var extension in Cache.Find<IStructureExtension>(Cache.Structures)) {
+		foreach (var extension in Cache.Structures.OfType<IStructureExtension>()) {
 			extensionsEnergy += extension.Store.GetUsedCapacity(ResourceType.Energy) ?? 0;
 		}
 		
@@ -125,7 +125,7 @@ internal static class SpawnManager {
 			return 300;
 		}
 
-		var extensionsCount = Cache.Find<IStructureExtension>(Cache.Structures).Count();
+		var extensionsCount = Cache.Structures.OfType<IStructureExtension>().Count();
 		return 300 + extensionsCount * 50;
 	}
 
