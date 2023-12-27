@@ -2,6 +2,8 @@ using System;
 using ScreepsDotNet.API;
 using ScreepsDotNet.API.World;
 
+#pragma warning disable CS8618
+
 internal class Role {
     private static IGame _game;
     internal static IGame Game {

@@ -45,7 +45,7 @@ internal sealed class Builder : Collector {
 					_creep.Memory.SetValue("state", "collecting");
 				}
 
-                var buildSites = Cache.Find<IConstructionSite>();
+                var buildSites = Cache.ConstructionSites;
 				if (!buildSites.Any()) return false;
 
                 var buildTarget = buildSites.MaxBy(x => x.Progress / x.ProgressTotal);

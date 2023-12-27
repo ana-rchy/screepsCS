@@ -10,7 +10,7 @@ internal sealed class Melee_Defender : Role {
     internal override bool Run() {
         if (!base.Run()) return false;
 
-        var targets = Cache.Find<ICreep>()
+        var targets = _creep.Room.Find<ICreep>()
             .Where(x => {
                 if (x.My) return false;
 

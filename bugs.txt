@@ -1,1 +1,0 @@
-- if theres extensions, and more energy than can be regened, creep cant be spawned cause of total > current energy

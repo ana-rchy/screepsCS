@@ -1,0 +1,9 @@
+bugs:
+- if theres extensions, and more energy than can be regened, creep cant be spawned cause of total > current energy
+- if ruin is empty, collector gets stuck without changing target (check if target is empty in state switch)
+
+to-do:
+- builders repairing
+- non-carrier collectors collect from storage/containers
+- carriers transfer into storage
+- repairer role?

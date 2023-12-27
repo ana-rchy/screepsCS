@@ -4,6 +4,8 @@ using System.Linq;
 using ScreepsDotNet.API;
 using ScreepsDotNet.API.World;
 
+#pragma warning disable CS8618
+
 internal static class SpawnManager {
     private static IGame _game;
 	private static IStructureSpawn _spawn; // TODO: make it multi-room-able
@@ -90,7 +92,7 @@ internal static class SpawnManager {
 	internal static int GetCurrentEnergy() {
 		var spawnEnergy = _spawn.Store.GetUsedCapacity(ResourceType.Energy) ?? 0;
 		int extensionsEnergy = 0;
-		foreach (var extension in Cache.Find<IStructureExtension>()) {
+		foreach (var extension in Cache.Find<IStructureExtension>(Cache.Structures)) {
 			extensionsEnergy += extension.Store.GetUsedCapacity(ResourceType.Energy) ?? 0;
 		}
 		
@@ -123,7 +125,7 @@ internal static class SpawnManager {
 			return 300;
 		}
 
-		var extensionsCount = Cache.Find<IStructureExtension>().Count();
+		var extensionsCount = Cache.Find<IStructureExtension>(Cache.Structures).Count();
 		return 300 + extensionsCount * 50;
 	}
 

@@ -13,13 +13,13 @@ internal class Collector : Role {
 
     protected string GetCollectionTarget() {
 		List<IRoomObject> energySources = new();
-		foreach (var container in Cache.Find<IStructureContainer>().Where(x => x.Store.GetUsedCapacity(ResourceType.Energy) != 0)) {
+		foreach (var container in Cache.Find<IStructureContainer>(Cache.Structures).Where(x => x.Store.GetUsedCapacity(ResourceType.Energy) != 0)) {
 			energySources.Add(container);
 		}
-		foreach (var dropped in Cache.Find<IResource>().Where(x => x.ResourceType == ResourceType.Energy)) {
+		foreach (var dropped in Cache.Resources.Where(x => x.ResourceType == ResourceType.Energy)) {
 			energySources.Add(dropped);
 		}
-		foreach (var tombstone in Cache.Find<ITombstone>()) {
+		foreach (var tombstone in Cache.Tombstones) {
 			energySources.Add(tombstone);
 		}
 
@@ -35,13 +35,12 @@ internal class Collector : Role {
 	}
 
     protected static int GetEnergy(IRoomObject energySource) {
-		if (energySource is IResource source) {
+		if (energySource is IWithStore container) {
+			return container.Store.GetUsedCapacity(ResourceType.Energy) ?? 0;
+		} else if (energySource is IResource source) {
 			return source.Amount;
-		} else if (energySource is IRuin ruin) {
-			var energy = ruin.Store.GetUsedCapacity(ResourceType.Energy);
-			return energy != null ? (int) energy : 0;
 		} else {
-			return -1;
+			return 0;
 		}
 	}
 
