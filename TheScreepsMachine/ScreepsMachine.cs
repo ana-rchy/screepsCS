@@ -11,6 +11,7 @@ internal static class ScreepsMachine {
 
 	internal static void Init(IGame game) {
 		_game = game;
+		Cache.Init(game);
 		SpawnManager.Init(game);
 		Role.Game = game;
 
@@ -20,6 +21,7 @@ internal static class ScreepsMachine {
 
 	internal static void Loop() {
 		CleanupMemory();
+		Cache.Run();
 		SpawnManager.Run();
 
 		foreach (var creep in Creeps) {
