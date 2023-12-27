@@ -13,13 +13,13 @@ internal class Collector : Role {
 
     protected string GetCollectionTarget() {
 		List<IRoomObject> energySources = new();
-		foreach (var container in _creep.Room.Find<IStructureContainer>().Where(x => x.Store.GetUsedCapacity(ResourceType.Energy) != 0)) {
+		foreach (var container in Cache.Find<IStructureContainer>().Where(x => x.Store.GetUsedCapacity(ResourceType.Energy) != 0)) {
 			energySources.Add(container);
 		}
-		foreach (var dropped in _creep.Room.Find<IResource>().Where(x => x.ResourceType == ResourceType.Energy)) {
+		foreach (var dropped in Cache.Find<IResource>().Where(x => x.ResourceType == ResourceType.Energy)) {
 			energySources.Add(dropped);
 		}
-		foreach (var tombstone in _creep.Room.Find<ITombstone>()) {
+		foreach (var tombstone in Cache.Find<ITombstone>()) {
 			energySources.Add(tombstone);
 		}
 

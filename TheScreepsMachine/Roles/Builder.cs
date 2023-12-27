@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using ScreepsDotNet.API;
 using ScreepsDotNet.API.World;
@@ -46,7 +45,7 @@ internal sealed class Builder : Collector {
 					_creep.Memory.SetValue("state", "collecting");
 				}
 
-                var buildSites = _creep.Room.Find<IConstructionSite>();
+                var buildSites = Cache.Find<IConstructionSite>();
 				if (!buildSites.Any()) return false;
 
                 var buildTarget = buildSites.MaxBy(x => x.Progress / x.ProgressTotal);

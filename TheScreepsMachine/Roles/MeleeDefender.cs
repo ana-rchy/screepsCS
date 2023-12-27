@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using ScreepsDotNet.API;
 using ScreepsDotNet.API.World;
@@ -11,7 +10,7 @@ internal sealed class Melee_Defender : Role {
     internal override bool Run() {
         if (!base.Run()) return false;
 
-        var targets = _creep.Room.Find<ICreep>()
+        var targets = Cache.Find<ICreep>()
             .Where(x => {
                 if (x.My) return false;
 

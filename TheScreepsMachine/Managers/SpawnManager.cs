@@ -31,12 +31,6 @@ internal static class SpawnManager {
     }
 
     internal static void Run() {
-		Console.WriteLine($"harvester: {_creepCounts["harvester"]}");
-		Console.WriteLine($"carrier: {_creepCounts["carrier"]}");
-		Console.WriteLine($"builder: {_creepCounts["builder"]}");
-		Console.WriteLine($"upgrader: {_creepCounts["upgrader"]}");
-		Console.WriteLine($"melee defender: {_creepCounts["melee_defender"]}");
-		
 		if (GetCurrentEnergy() < GetTotalEnergy()) return;
 
 		var spawnTargets = _creepCounts
@@ -47,36 +41,35 @@ internal static class SpawnManager {
 		
 		switch (spawnTarget.Key) {
 			case "harvester":
-				Console.WriteLine("harvester...");
 				_ = new Harvester(_spawn);
-				_creepCounts[spawnTarget.Key]++;
 				Console.WriteLine("spawning harvester");
+				Console.WriteLine($"harvester: {_creepCounts["harvester"]}");
 				break;
 			case "carrier":
-				Console.WriteLine("carrier...");
 				_ = new Carrier(_spawn);
-				_creepCounts[spawnTarget.Key]++;
 				Console.WriteLine("spawning carrier");
+				Console.WriteLine($"carrier: {_creepCounts["carrier"]}");
 				break;
 			case "builder":
-				Console.WriteLine("builder...");
 				_ = new Builder(_spawn);
-				_creepCounts[spawnTarget.Key]++;
 				Console.WriteLine("spawning builder");
+				Console.WriteLine($"builder: {_creepCounts["builder"]}");
 				break;
 			case "upgrader":
-				Console.WriteLine("upgrader...");
 				_ = new Upgrader(_spawn);
-				_creepCounts[spawnTarget.Key]++;
 				Console.WriteLine("spawning upgrader");
+				Console.WriteLine($"upgrader: {_creepCounts["upgrader"]}");
 				break;
 			case "melee_defender":
-				Console.WriteLine("defender...");
 				_ = new Melee_Defender(_spawn);
-				_creepCounts[spawnTarget.Key]++;
 				Console.WriteLine("spawning melee defender");
+				Console.WriteLine($"melee defender: {_creepCounts["melee_defender"]}");
 				break;
+			default:
+				return;
 		}
+
+		_creepCounts[spawnTarget.Key]++;
 	}
 
     // ------------------------------------------------------------------------------------------------------------------- //
@@ -97,7 +90,7 @@ internal static class SpawnManager {
 	internal static int GetCurrentEnergy() {
 		var spawnEnergy = _spawn.Store.GetUsedCapacity(ResourceType.Energy) ?? 0;
 		int extensionsEnergy = 0;
-		foreach (var extension in _spawn.Room.Find<IStructureExtension>()) {
+		foreach (var extension in Cache.Find<IStructureExtension>()) {
 			extensionsEnergy += extension.Store.GetUsedCapacity(ResourceType.Energy) ?? 0;
 		}
 		
@@ -130,7 +123,7 @@ internal static class SpawnManager {
 			return 300;
 		}
 
-		var extensionsCount = _spawn.Room.Find<IStructureExtension>().Count();
+		var extensionsCount = Cache.Find<IStructureExtension>().Count();
 		return 300 + extensionsCount * 50;
 	}
 

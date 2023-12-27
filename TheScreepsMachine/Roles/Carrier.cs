@@ -49,8 +49,8 @@ internal sealed class Carrier : Collector {
 
                 IEnumerable<IWithStore> containers = new List<IWithStore>();
                 containers = containers
-                    .Concat(_creep.Room.Find<IStructureSpawn>())
-                    .Concat(_creep.Room.Find<IStructureExtension>());
+                    .Concat(Cache.Find<IStructureSpawn>())
+                    .Concat(Cache.Find<IStructureExtension>());
                 var transferTarget = (IStructure?) containers
 					.Where(x => x.Store.GetFreeCapacity(ResourceType.Energy) != 0)
                     .MinBy(x => x.Store.GetFreeCapacity(ResourceType.Energy));
