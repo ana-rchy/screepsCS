@@ -4,15 +4,12 @@ using System.Linq;
 using ScreepsDotNet.API;
 using ScreepsDotNet.API.World;
 
-internal sealed class Carrier : Role {
+internal sealed class Carrier : Collector {
     internal Carrier(string name) : base(name) {}
-    internal Carrier(IStructureSpawn spawn) : base(spawn) {
-		Game.Memory.GetOrCreateObject("creeps").GetOrCreateObject(_name)
-			.SetValue("state", "collecting");
-    }
+    internal Carrier(IStructureSpawn spawn) : base(spawn) {}
 
-    internal override void Run() {
-		if (!Game.Creeps.TryGetValue(_name, out _creep)) return;
+    internal override bool Run() {
+		if (!base.Run()) return false;
 
         var success = _creep.Memory.TryGetString("state", out var state);
 		if (!success) {
@@ -26,7 +23,7 @@ internal sealed class Carrier : Role {
 				if (_creep.Store.GetFreeCapacity(ResourceType.Energy) == 0 ||
 					(!success && _creep.Store.GetUsedCapacity(ResourceType.Energy) > 50)) {
 					_creep.Memory.SetValue("state", "transferring");
-					return;
+					return false;
 				}
 
 				success = _creep.Memory.TryGetString("collectionTarget", out var collectionTarget);
@@ -47,7 +44,7 @@ internal sealed class Carrier : Role {
 			case "transferring":
 				if (_creep.Store.GetUsedCapacity(ResourceType.Energy) == 0) {
 					_creep.Memory.SetValue("state", "collecting");
-					return;
+					return false;
 				}
 
                 IEnumerable<IWithStore> containers = new List<IWithStore>();
@@ -60,7 +57,7 @@ internal sealed class Carrier : Role {
 				
 				if (transferTarget == null) {
 					_creep.Memory.SetValue("state", "collecting");
-					return;
+					return false;
 				}
 
 				var result = _creep.Transfer(transferTarget, ResourceType.Energy);
@@ -72,6 +69,8 @@ internal sealed class Carrier : Role {
 
 				break;
 		}
+
+		return true;
     }
 
 
@@ -93,54 +92,5 @@ internal sealed class Carrier : Role {
 		}
 
 		return new(body);
-	}
-
-	private string GetCollectionTarget() {
-		List<IRoomObject> energySources = new();
-		foreach (var dropped in _creep.Room.Find<IResource>().Where(x => x.ResourceType == ResourceType.Energy)) {
-			energySources.Add(dropped);
-		}
-		foreach (var tombstone in _creep.Room.Find<ITombstone>()) {
-			energySources.Add(tombstone);
-		}
-		foreach (var ruin in _creep.Room.Find<IRuin>()) {
-			energySources.Add(ruin);
-		}
-		var validSources = energySources.Where(x => GetEnergy(x) >= 10);
-		if (!validSources.Any()) {
-			Console.WriteLine($"{_name}: no valid collection targets found");
-			return "null";
-		}
-
-		var withdrawTarget = validSources.MaxBy(x => GetEnergy(x));
-		
-		return ((IWithId?) withdrawTarget) != null ? ((IWithId?) withdrawTarget).Id : "null";
-	}
-
-    private static int GetEnergy(IRoomObject energySource) {
-		if (energySource is IResource source) {
-			return source.Amount;
-		} else if (energySource is IRuin ruin) {
-			var energy = ruin.Store.GetUsedCapacity(ResourceType.Energy);
-			return energy != null ? (int) energy : 0;
-		} else {
-			return -1;
-		}
-	}
-
-	private static void CommonWithdraw(ICreep creep, IRoomObject withdrawTarget) {
-		if (withdrawTarget is IResource target) {
-			if (creep.Pickup(target) == CreepPickupResult.NotInRange) {
-				creep.MoveTo(target.LocalPosition);
-			}
-		} else if (withdrawTarget is ITombstone tombstone) {
-			if (creep.Withdraw(tombstone, ResourceType.Energy) == CreepWithdrawResult.NotInRange) {
-				creep.MoveTo(tombstone.LocalPosition);
-			}
-        } else if (withdrawTarget is IRuin ruin) {
-			if (creep.Withdraw(ruin, ResourceType.Energy) == CreepWithdrawResult.NotInRange) {
-				creep.MoveTo(ruin.LocalPosition);
-			}
-		}
 	}
 }

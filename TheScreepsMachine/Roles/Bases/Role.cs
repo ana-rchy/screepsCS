@@ -4,8 +4,8 @@ using ScreepsDotNet.API;
 using ScreepsDotNet.API.World;
 
 internal class Role {
-    private static IGame? _game = null;
-    internal static IGame? Game {
+    private static IGame _game;
+    internal static IGame Game {
         get {
             return _game;
         }
@@ -27,7 +27,7 @@ internal class Role {
     // for new creeps
     internal Role(IStructureSpawn spawn) {
         _name = $"{GetType().Name.ToLower()}{Game.Time}";
-        var energyBudget = SpawnManager.GetTotalEnergy();
+        var energyBudget = SpawnManager.GetCurrentEnergy();
 
         var result = spawn.SpawnCreep(GetBody(energyBudget), _name);
         if (result == SpawnCreepResult.Ok) {
@@ -39,9 +39,11 @@ internal class Role {
         }
     }
 
-    internal virtual void Run() {
+    internal virtual bool Run() {
         // creep may not be in game memory yet
-        if (!Game.Creeps.TryGetValue(_name, out _creep)) return;
+        if (!Game.Creeps.TryGetValue(_name, out _creep)) return false;
+
+        return true;
     }
 
     protected virtual BodyType<BodyPartType> GetBody(int energyBudget) {

@@ -37,7 +37,7 @@ internal static class SpawnManager {
 		Console.WriteLine($"upgrader: {_creepCounts["upgrader"]}");
 		Console.WriteLine($"melee defender: {_creepCounts["melee_defender"]}");
 		
-		if (GetCurrentEnergy() != GetTotalEnergy()) return;
+		if (GetCurrentEnergy() < GetTotalEnergy()) return;
 
 		var spawnTargets = _creepCounts
 			.Where(x => x.Value < _maxCreepCounts[x.Key]);
@@ -47,26 +47,31 @@ internal static class SpawnManager {
 		
 		switch (spawnTarget.Key) {
 			case "harvester":
+				Console.WriteLine("harvester...");
 				_ = new Harvester(_spawn);
 				_creepCounts[spawnTarget.Key]++;
 				Console.WriteLine("spawning harvester");
 				break;
 			case "carrier":
+				Console.WriteLine("carrier...");
 				_ = new Carrier(_spawn);
 				_creepCounts[spawnTarget.Key]++;
 				Console.WriteLine("spawning carrier");
 				break;
 			case "builder":
+				Console.WriteLine("builder...");
 				_ = new Builder(_spawn);
 				_creepCounts[spawnTarget.Key]++;
 				Console.WriteLine("spawning builder");
 				break;
 			case "upgrader":
+				Console.WriteLine("upgrader...");
 				_ = new Upgrader(_spawn);
 				_creepCounts[spawnTarget.Key]++;
 				Console.WriteLine("spawning upgrader");
 				break;
 			case "melee_defender":
+				Console.WriteLine("defender...");
 				_ = new Melee_Defender(_spawn);
 				_creepCounts[spawnTarget.Key]++;
 				Console.WriteLine("spawning melee defender");
@@ -89,13 +94,14 @@ internal static class SpawnManager {
 		_creepCounts[role]--;
 	}
 
-	internal static int GetTotalEnergy() {
-		if (_creepCounts["harvester"] == 0 || _creepCounts["carrier"] == 0) {
-			return 300;
+	internal static int GetCurrentEnergy() {
+		var spawnEnergy = _spawn.Store.GetUsedCapacity(ResourceType.Energy) ?? 0;
+		int extensionsEnergy = 0;
+		foreach (var extension in _spawn.Room.Find<IStructureExtension>()) {
+			extensionsEnergy += extension.Store.GetUsedCapacity(ResourceType.Energy) ?? 0;
 		}
-
-		var extensionsCount = _spawn.Room.Find<IStructureExtension>().Count();
-		return 300 + extensionsCount * 50;
+		
+		return spawnEnergy + extensionsEnergy;
 	}
 
     private static void CountCreeps() {
@@ -119,14 +125,13 @@ internal static class SpawnManager {
 		}
 	}
 
-	private static int GetCurrentEnergy() {
-		var spawnEnergy = (int) _spawn.Store.GetUsedCapacity(ResourceType.Energy);
-		int extensionsEnergy = 0;
-		foreach (var extension in _spawn.Room.Find<IStructureExtension>()) {
-			extensionsEnergy += (int) extension.Store.GetUsedCapacity(ResourceType.Energy);
+	private static int GetTotalEnergy() {
+		if (_creepCounts["harvester"] == 0 || _creepCounts["carrier"] == 0) {
+			return 300;
 		}
-		
-		return spawnEnergy + extensionsEnergy;
+
+		var extensionsCount = _spawn.Room.Find<IStructureExtension>().Count();
+		return 300 + extensionsCount * 50;
 	}
 
     #endregion

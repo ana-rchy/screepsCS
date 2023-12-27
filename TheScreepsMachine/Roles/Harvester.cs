@@ -11,19 +11,19 @@ internal sealed class Harvester : Role {
 			.SetValue("target", GetHarvesterTarget(spawn).Id);
     }
 
-    internal override void Run() {
-        if (!Game.Creeps.TryGetValue(_name, out _creep)) return;
+    internal override bool Run() {
+        if (!base.Run()) return false;
 
         var success = _creep.Memory.TryGetString("target", out var target);
 		if (!success) {
 			Console.WriteLine("no harvester target assigned");
-			return;
+			return false;
 		}
 
 		var source = Game.GetObjectById<ISource>(target);
 		if (source == null) {
 			Console.WriteLine("invalid harvester target");
-			return;
+			return false;
 		}
 
 		var result = _creep.Harvest(source);
@@ -32,6 +32,8 @@ internal sealed class Harvester : Role {
 		} else if (result != CreepHarvestResult.Ok) {
 			Console.WriteLine($"{_name}: {result}");
 		}
+
+		return true;
     }
 
 

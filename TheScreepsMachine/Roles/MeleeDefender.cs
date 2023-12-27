@@ -8,8 +8,8 @@ internal sealed class Melee_Defender : Role {
     internal Melee_Defender(string name) : base(name) {}
     internal Melee_Defender(IStructureSpawn spawn) : base(spawn) {}
 
-    internal override void Run() {
-        if (!Game.Creeps.TryGetValue(_name, out _creep)) return;
+    internal override bool Run() {
+        if (!base.Run()) return false;
 
         var targets = _creep.Room.Find<ICreep>()
             .Where(x => {
@@ -18,7 +18,7 @@ internal sealed class Melee_Defender : Role {
                 var partList = x.BodyType.AsBodyPartList;
                 return partList.Contains(BodyPartType.Attack) || partList.Contains(BodyPartType.RangedAttack) || partList.Contains(BodyPartType.Heal);
             });
-        if (!targets.Any()) return;
+        if (!targets.Any()) return false;
         
         var target = targets.MinBy(x => _creep.LocalPosition.LinearDistanceTo(x.LocalPosition));
         
@@ -28,6 +28,8 @@ internal sealed class Melee_Defender : Role {
         } else if (result != CreepAttackResult.Ok) {
             Console.WriteLine($"{_name}: {result}");
         }
+
+        return true;
     }
 
 
