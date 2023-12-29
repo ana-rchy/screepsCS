@@ -17,7 +17,10 @@ internal sealed class Melee_Defender : Role {
                 var partList = x.BodyType.AsBodyPartList;
                 return partList.Contains(BodyPartType.Attack) || partList.Contains(BodyPartType.RangedAttack) || partList.Contains(BodyPartType.Heal);
             });
-        if (!targets.Any()) return false;
+        if (!targets.Any()) {
+            _creep.MoveTo(Game.Flags["Flag1"].LocalPosition);
+            return true;
+        }
         
         var target = targets.MinBy(x => _creep.LocalPosition.LinearDistanceTo(x.LocalPosition));
         
