@@ -35,6 +35,7 @@ internal static class SpawnManager {
     internal static void Run() {
 		if (GetCurrentEnergy() < GetTotalEnergy()) return;
 
+		// determine what role to spawn
 		var spawnTargets = _creepCounts
 			.Where(x => x.Value < _maxCreepCounts[x.Key]);
 		if (!spawnTargets.Any()) return;

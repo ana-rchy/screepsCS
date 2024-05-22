@@ -24,14 +24,14 @@ internal sealed class Upgrader : Collector {
 				if (_creep.Store.GetFreeCapacity(ResourceType.Energy) == 0 ||
 					(!success && _creep.Store.GetUsedCapacity(ResourceType.Energy) > 50)) {
 					_creep.Memory.SetValue("state", "upgrading");
-					return false;
+					return true;
 				}
 
 				success = _creep.Memory.TryGetString("collectionTarget", out var collectionTarget);
 				if (!success || Game.GetObjectById<IRoomObject>(collectionTarget) == null) {
 					collectionTarget = GetCollectionTarget();
-					if (collectionTarget == null) {
-						Console.WriteLine("no carrier collection targets found");
+					if (collectionTarget == "null") {
+						Console.WriteLine("no upgrader collection targets found");
 						break;
 					}
 

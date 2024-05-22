@@ -23,13 +23,14 @@ internal sealed class Carrier : Collector {
 				if (_creep.Store.GetFreeCapacity(ResourceType.Energy) == 0 ||
 					(!success && _creep.Store.GetUsedCapacity(ResourceType.Energy) > 50)) {
 					_creep.Memory.SetValue("state", "transferring");
-					return false;
+					return true;
 				}
+
 
 				success = _creep.Memory.TryGetString("collectionTarget", out var collectionTarget);
 				if (!success || Game.GetObjectById<IRoomObject>(collectionTarget) == null) {
 					collectionTarget = GetCollectionTarget();
-					if (collectionTarget == null) {
+					if (collectionTarget == "null") {
 						Console.WriteLine("no carrier collection targets found");
 						break;
 					}
@@ -44,20 +45,31 @@ internal sealed class Carrier : Collector {
 			case "transferring":
 				if (_creep.Store.GetUsedCapacity(ResourceType.Energy) == 0) {
 					_creep.Memory.SetValue("state", "collecting");
-					return false;
+					return true;
 				}
 
-                IEnumerable<IWithStore> containers = new List<IWithStore>();
-                containers = containers
-                    .Append(SpawnManager.Spawn)
-                    .Concat(Cache.Structures.OfType<IStructureExtension>());
-                var transferTarget = (IStructure?) containers
-					.Where(x => x.Store.GetFreeCapacity(ResourceType.Energy) != 0)
-                    .MinBy(x => x.Store.GetFreeCapacity(ResourceType.Energy));
+				IStructure? transferTarget = null;
+
+
+				IEnumerable<IWithStore> extensions = new List<IWithStore>() { SpawnManager.Spawn };
+				extensions = extensions
+					.Concat(Cache.Structures.OfType<IStructureExtension>())
+					.Where(x => x.Store.GetFreeCapacity(ResourceType.Energy) != 0);
+				
+				if (extensions.Any()) {
+					transferTarget = (IStructure?) extensions
+						.MinBy(x => x.Store.GetFreeCapacity(ResourceType.Energy));
+				} else {
+					var storage = Cache.Structures.OfType<IStructureStorage>()
+						.Where(x => x.Store.GetFreeCapacity(ResourceType.Energy) != 0);
+					if (storage.Any()) {
+						transferTarget = storage.First();
+					}
+				}
 				
 				if (transferTarget == null) {
 					_creep.Memory.SetValue("state", "collecting");
-					return false;
+					return true;
 				}
 
 				var result = _creep.Transfer(transferTarget, ResourceType.Energy);
@@ -92,5 +104,28 @@ internal sealed class Carrier : Collector {
 		}
 
 		return new(body);
+	}
+
+	protected override string GetCollectionTarget() {
+		List<IRoomObject> energySources = new();
+		foreach (var container in Cache.Structures.OfType<IStructureContainer>().Where(x => x.Store.GetUsedCapacity(ResourceType.Energy) != 0)) {
+			energySources.Add(container);
+		}
+		foreach (var dropped in Cache.Resources.Where(x => x.ResourceType == ResourceType.Energy)) {
+			energySources.Add(dropped);
+		}
+		foreach (var tombstone in Cache.Tombstones) {
+			energySources.Add(tombstone);
+		}
+
+		var validSources = energySources.Where(x => GetEnergy(x) >= 10);
+		if (!validSources.Any()) {
+			Console.WriteLine($"{_name}: no valid collection targets found");
+			return "null";
+		}
+
+		var collectionTarget = validSources.MaxBy(x => GetEnergy(x));
+		
+		return ((IWithId?) collectionTarget) != null ? ((IWithId?) collectionTarget).Id : "null";
 	}
 }

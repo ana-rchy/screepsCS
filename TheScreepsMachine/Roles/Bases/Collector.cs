@@ -10,8 +10,14 @@ internal class Collector : Role {
         Game.Memory.GetOrCreateObject("creeps").GetOrCreateObject(_name)
 			.SetValue("state", "collecting");
     }
+	
 
-    protected string GetCollectionTarget() {
+    protected virtual string GetCollectionTarget() {
+		var storage = Cache.Structures.OfType<IStructureStorage>();
+		if (storage.Any()) {
+			return storage.Where(x => x.Store.GetUsedCapacity(ResourceType.Energy) != 0).First().Id;
+		}
+
 		List<IRoomObject> energySources = new();
 		foreach (var container in Cache.Structures.OfType<IStructureContainer>().Where(x => x.Store.GetUsedCapacity(ResourceType.Energy) != 0)) {
 			energySources.Add(container);
@@ -29,9 +35,9 @@ internal class Collector : Role {
 			return "null";
 		}
 
-		var withdrawTarget = validSources.MaxBy(x => GetEnergy(x));
+		var collectionTarget = validSources.MaxBy(x => GetEnergy(x));
 		
-		return ((IWithId?) withdrawTarget) != null ? ((IWithId?) withdrawTarget).Id : "null";
+		return ((IWithId?) collectionTarget) != null ? ((IWithId?) collectionTarget).Id : "null";
 	}
 
     protected static int GetEnergy(IRoomObject energySource) {

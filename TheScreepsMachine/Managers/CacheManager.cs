@@ -26,7 +26,7 @@ internal static class Cache {
 		
 		if (_tickCounter % 5 == 0) {
 			Sources = _room.Find<ISource>();
-			Structures = _room.Find<IStructure>(true);
+			Structures = _room.Find<IStructure>();
 			Tombstones = _room.Find<ITombstone>();
 			ConstructionSites = _room.Find<IConstructionSite>(true);
 
